@@ -27,21 +27,15 @@ namespace RevitAddinRebar
         }
 
         // Showと言うメソッド名を使いたかったので、newで上書きしていますが別にこれは任意の名前で構いません
-        public static new void Show()
+        public static async new void Show()
         {
-            // BeginInvokeで実処理を別スレッド実行
-            Action showProc = new Action(ShowProcess);
-            IAsyncResult async = showProc.BeginInvoke(null, null);
+            await ShowProcessAsync();
+        }
 
-            // そのままメインスレッドは処理が流れるため、別スレッドでインスタンスが生成されるまで待つ
-            while (true)
-            {
-                if (instance != null)
-                {
-                    break;
-                }
-            }
-            return;
+        private static Task ShowProcessAsync()
+        {
+            Action showProc = new Action(ShowProcess);
+            return Task.Run(showProc);
         }
 
         private static void ShowProcess()
@@ -54,6 +48,52 @@ namespace RevitAddinRebar
            // Showだと処理が流れてスレッドが終了してしまうので、ShowDialogで表示して
            // 別スレッド側は処理を待つ
            ((Window)instance).ShowDialog();
+        }
+
+        // クローズ処理
+        public static new void Close()
+        {
+            if (instance == null) return;
+
+            if (instance.Dispatcher.CheckAccess())
+            {
+                ((Window)instance).Close();
+                instance = null;
+            }
+            else
+            {
+                instance.Dispatcher.Invoke(new Action(Close));
+            }
+        }
+
+        // プログレスバー最大値の設定
+        public static void SetProgressBar(int max)
+        {
+            if (instance == null) return;
+
+            if (instance.Dispatcher.CheckAccess())
+            {
+                instance.progressBar.Maximum = max;
+            }
+            else
+            {
+                instance.Dispatcher.Invoke(new Action<int>(SetProgressBar), new object[] { max });
+            }
+        }
+
+        // プログレスバー現在値の設定
+        public static void SetProgressBarValue(int val)
+        {
+            if (instance == null) return;
+
+            if (instance.Dispatcher.CheckAccess())
+            {
+                instance.progressBar.Value = val;
+            }
+            else
+            {
+                instance.Dispatcher.Invoke(new Action<int>(SetProgressBarValue), new object[] { val });
+            }
         }
     }
 }
