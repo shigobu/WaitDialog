@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,7 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace RevitAddinRebar
+namespace AutoRebarWindow
 {
     /// <summary>
     /// WaitDialigWPF.xaml の相互作用ロジック
@@ -35,7 +36,7 @@ namespace RevitAddinRebar
         private static Task ShowProcessAsync()
         {
             Action showProc = new Action(ShowProcess);
-            return Task.Run(showProc);
+            return STATask.Run(showProc);
         }
 
         private static void ShowProcess()
@@ -94,6 +95,38 @@ namespace RevitAddinRebar
             {
                 instance.Dispatcher.Invoke(new Action<int>(SetProgressBarValue), new object[] { val });
             }
+        }
+    }
+
+    // STAで実行されるTaskオブジェクトを生成する
+    internal class STATask
+    {
+        public static Task Run<T>(Func<T> func)
+        {
+            var tcs = new TaskCompletionSource<T>();
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    tcs.SetResult(func());
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            return tcs.Task;
+        }
+
+        public static Task Run(Action act)
+        {
+            return Run(() =>
+            {
+                act();
+                return true;
+            });
         }
     }
 }

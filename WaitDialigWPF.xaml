@@ -1,9 +1,9 @@
-﻿<Window x:Class="RevitAddinRebar.WaitDialogWPF"
+﻿<Window x:Class="AutoRebarWindow.WaitDialogWPF"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:RevitAddinRebar"
+        xmlns:local="clr-namespace:AutoRebarWindow"
         mc:Ignorable="d"
         Title="処理中" Width="300" ResizeMode="NoResize" SizeToContent="Height" WindowStartupLocation="CenterOwner">
     <StackPanel Margin="6">
